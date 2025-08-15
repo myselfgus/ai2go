@@ -1,13 +1,45 @@
-# Multi-stage build para orquestrador
-FROM python:3.12-slim AS builder
-WORKDIR /app
-RUN pip install uv
-COPY pyproject.toml .
-RUN uv sync --all-extras
+# Dockerfile para o serviço orchestrator (Python)
 
-FROM gcr.io/distroless/python3-debian12
+# Etapa 1: Builder - Instala as dependências em um ambiente virtual
+FROM python:3.11-slim AS builder
+
+# Instala o uv, nosso gerenciador de pacotes e ambientes Python.
+RUN pip install uv
+
 WORKDIR /app
+
+# Copia os arquivos de definição de dependências.
+# O uso de `uv.lock*` é para caso existam múltiplos arquivos de lock.
+COPY pyproject.toml uv.lock* ./
+
+# Cria um ambiente virtual e instala as dependências nele.
+# Isso aproveita o cache de camadas do Docker. As dependências só são reinstaladas
+# se os arquivos de lock mudarem.
+RUN uv venv /app/.venv && \
+    uv sync --all-extras --python /app/.venv/bin/python
+
+# Etapa 2: Final - Cria a imagem de produção final
+# Usamos uma imagem distroless para segurança e tamanho reduzido.
+FROM gcr.io/distroless/python3-debian11
+
+WORKDIR /app
+
+# Copia o ambiente virtual com as dependências da etapa de build.
 COPY --from=builder /app/.venv /app/.venv
-COPY services/orchestrator/src /app/src
+
+# Copia o código da aplicação. 
+# Embora o código seja montado por volume no desenvolvimento, esta cópia
+# garante que a imagem possa ser usada de forma autônoma em produção.
+COPY ./fast-agent /app/fast-agent
+COPY ./codemcp /app/codemcp
+
+# Adiciona o diretório de binários do ambiente virtual ao PATH do sistema.
 ENV PATH="/app/.venv/bin:$PATH"
-CMD ["python", "src/agent.py"]
+
+# Expõe a porta em que o serviço irá rodar.
+EXPOSE 8000
+
+# Comando para iniciar a aplicação.
+# Este é um placeholder e precisará ser ajustado para o comando real
+# que inicia o servidor do orquestrador (ex: usando uvicorn, gunicorn, etc.).
+CMD ["uvicorn", "orchestrator.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,0 +1,73 @@
+version: '3.8'
+
+# Este arquivo orquestra todos os microsserviços do projeto gopilot.
+# Cada serviço é definido abaixo, com seu contexto de build, portas e volumes.
+
+networks:
+  gopilot-net:
+    driver: bridge
+
+volumes:
+  cognee_data:
+    driver: local
+
+services:
+  # O Orquestrador é o cérebro do sistema, construído com fast-agent.
+  orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile-orchestrator.txt
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./fast-agent:/app/fast-agent
+      - ./codemcp:/app/codemcp
+    env_file:
+      - .env
+    networks:
+      - gopilot-net
+
+  # A interface de usuário principal.
+  librechat:
+    build:
+      context: ./LibreChat
+      dockerfile: Dockerfile
+    ports:
+      - "3080:3080"
+    volumes:
+      - ./LibreChat:/app
+    depends_on:
+      - orchestrator
+    env_file:
+      - .env
+    networks:
+      - gopilot-net
+
+  # O servidor de ferramentas de banco de dados em Go.
+  genai-toolbox:
+    build:
+      context: ./genai-toolbox
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./genai-toolbox:/app
+    env_file:
+      - .env
+    networks:
+      - gopilot-net
+
+  # O serviço de memória cognitiva.
+  cognee-service:
+    build:
+      context: ./cognee
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8000"
+    volumes:
+      - ./cognee:/app
+      - cognee_data:/data
+    env_file:
+      - .env
+    networks:
+      - gopilot-net
