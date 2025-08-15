@@ -1,13 +1,32 @@
 # Multi-stage build para orquestrador
 FROM python:3.12-slim AS builder
+
 WORKDIR /app
+
+# Install uv for fast Python package management
 RUN pip install uv
+
+# Copy dependency files
 COPY pyproject.toml .
+
+# Install dependencies
 RUN uv sync --all-extras
 
+# Production stage using distroless
 FROM gcr.io/distroless/python3-debian12
+
 WORKDIR /app
+
+# Copy virtual environment and source code
 COPY --from=builder /app/.venv /app/.venv
 COPY services/orchestrator/src /app/src
+COPY config /app/config
+
+# Set PATH to include virtual environment
 ENV PATH="/app/.venv/bin:$PATH"
+
+# Expose port for health checks
+EXPOSE 8080
+
+# Run the orchestrator
 CMD ["python", "src/agent.py"]

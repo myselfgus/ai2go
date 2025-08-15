@@ -1,0 +1,41 @@
+# GPT-OSS Configuration for vLLM
+# This configuration file sets up the GPT-OSS model for use with vLLM
+
+model:
+  name: "gpt-oss"
+  # Placeholder for actual model path - will be mounted or downloaded
+  path: "/models/gpt-oss"
+  
+server:
+  host: "0.0.0.0"
+  port: 8000
+  max_model_len: 32768
+  max_num_seqs: 64
+  
+# Model parameters
+generation:
+  temperature: 0.7
+  top_p: 0.9
+  top_k: 50
+  max_tokens: 2048
+  
+# Performance settings
+performance:
+  tensor_parallel_size: 1
+  pipeline_parallel_size: 1
+  gpu_memory_utilization: 0.9
+  
+# API compatibility
+api:
+  openai_compatible: true
+  serve_embedding: false
+  
+# Health check settings
+health:
+  enabled: true
+  endpoint: "/health"
+  
+# Logging
+logging:
+  level: "INFO"
+  format: "json"

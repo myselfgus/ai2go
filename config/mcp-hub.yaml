@@ -1,0 +1,96 @@
+# MCP Server Hub Configuration
+# This file defines the available MCP servers for the AI Agent System
+
+servers:
+  # Database Tools
+  db_toolbox:
+    name: "DB Toolbox"
+    description: "Database operations and queries"
+    transport: "stdio"
+    command: "mcp-server-db"
+    args: ["--config", "/app/config/db-config.json"]
+    env:
+      DATABASE_URL: "${DATABASE_URL}"
+    
+  # Media Generation Tools  
+  genmedia:
+    name: "GenMedia"
+    description: "AI-powered media generation (images, videos, audio)"
+    transport: "sse"
+    endpoint: "http://genmedia-server:8080/sse"
+    env:
+      OPENAI_API_KEY: "${LLM_API_KEY}"
+      
+  # Code Assistant Tools
+  code_assistant:
+    name: "Code Assistant"
+    description: "Code analysis, generation, and refactoring tools"
+    transport: "stdio"
+    command: "mcp-server-code"
+    args: ["--workspace", "/workspace"]
+    
+  # A2A Bridge for Agent-to-Agent Communication
+  a2a_bridge:
+    name: "A2A Bridge"
+    description: "Agent-to-agent communication and coordination"
+    transport: "websocket"
+    endpoint: "ws://a2a-bridge:8081/ws"
+    
+  # Computer Control (for UI automation)
+  computer_control:
+    name: "Computer Control"
+    description: "UI automation and computer control"
+    transport: "stdio"
+    command: "mcp-server-computer"
+    args: ["--display", ":99"]
+    
+  # File System Operations
+  filesystem:
+    name: "File System"
+    description: "Advanced file system operations"
+    transport: "stdio"
+    command: "mcp-server-fs"
+    args: ["--root", "/workspace"]
+    
+  # Git Operations
+  git_tools:
+    name: "Git Tools"
+    description: "Git repository operations"
+    transport: "stdio"
+    command: "mcp-server-git"
+    args: ["--repo-root", "/workspace"]
+
+# Tool Categories
+categories:
+  development:
+    - code_assistant
+    - git_tools
+    - filesystem
+    
+  data:
+    - db_toolbox
+    - filesystem
+    
+  media:
+    - genmedia
+    
+  automation:
+    - computer_control
+    
+  coordination:
+    - a2a_bridge
+
+# Security Settings
+security:
+  allow_stdio: true
+  allow_network: true
+  sandbox_mode: false
+  allowed_hosts:
+    - "genmedia-server"
+    - "a2a-bridge"
+  
+# Resource Limits
+limits:
+  max_connections_per_server: 10
+  connection_timeout: 30
+  request_timeout: 300

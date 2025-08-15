@@ -1,0 +1,45 @@
+# Multi-stage build para agentes (um por repositório)
+FROM python:3.12-slim AS builder
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv for fast Python package management
+RUN pip install uv
+
+# Copy dependency files
+COPY pyproject.toml .
+
+# Install dependencies
+RUN uv sync --all-extras
+
+# Install Playwright browsers
+RUN /app/.venv/bin/playwright install --with-deps chromium
+
+# Production stage using distroless
+FROM gcr.io/distroless/python3-debian12
+
+WORKDIR /app
+
+# Copy virtual environment and source code
+COPY --from=builder /app/.venv /app/.venv
+COPY services/agent/src /app/src
+COPY config /app/config
+
+# Set PATH to include virtual environment
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Create workspace volume mount point
+VOLUME /workspace
+
+# Expose port for health checks
+EXPOSE 8081
+
+# Run the agent worker
+CMD ["python", "src/worker.py"]
