@@ -1,0 +1,34 @@
+#!/bin/bash
+set -e
+
+# Autenticação no Docker Hub (evitar limites de pull)
+docker login -u "$DOCKER_USER" -p "$DOCKER_PASS"
+
+# Build multi-stage
+docker build -t gcr.io/$PROJECT/orchestrator -f Dockerfile-orchestrator .
+docker build -t gcr.io/$PROJECT/agent -f Dockerfile-agent .
+docker build -t gcr.io/$PROJECT/gpt-oss -f Dockerfile-gpt-oss .
+
+# Push para GCR
+docker push gcr.io/$PROJECT/orchestrator
+docker push gcr.io/$PROJECT/agent
+docker push gcr.io/$PROJECT/gpt-oss
+
+# Deploy no Cloud Run
+gcloud run deploy orchestrator \
+  --image gcr.io/$PROJECT/orchestrator \
+  --region $REGION \
+  --set-env-vars="GCS_BUCKET=$GCS_BUCKET,LLM_API_KEY=$LLM_API_KEY"
+
+gcloud run deploy gpt-oss \
+  --image gcr.io/$PROJECT/gpt-oss \
+  --region $REGION \
+  --set-cloudsql-instances=$SQL_INSTANCE \
+  --add-volume=name=repos,TYPE=cloud-storage,BUCKET=$GCS_BUCKET
+
+# Deploy LibreChat (separado)
+docker build -t gcr.io/$PROJECT/librechat -f librechat/Dockerfile .
+gcloud run deploy librechat-ui \
+  --image gcr.io/$PROJECT/librechat \
+  --region $REGION \
+  --set-env-vars="BACKEND_URL=https://orchestrator.run.app"

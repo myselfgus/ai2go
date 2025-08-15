@@ -1,0 +1,5 @@
+# Imagem para GPT-OSS (exemplo com vLLM)
+FROM vllm/vllm-openai:latest
+WORKDIR /app
+COPY gpt-oss-config.yaml .
+CMD ["vllm", "serve", "--model", "gpt-oss", "--host", "0.0.0.0", "--port", "8000"]

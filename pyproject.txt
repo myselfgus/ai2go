@@ -1,0 +1,12 @@
+[project]
+name = "ai-agent-system"
+version = "1.0.0"
+dependencies = [
+    "fast-agent-mcp>=0.1.0",
+    "cognee>=0.1.0",
+    "playwright>=1.44.0",
+    "google-cloud-speech>=2.26.0",
+    "google-cloud-texttospeech>=2.16.0",
+]
+[project.optional-dependencies]
+mcp = ["a2a-mcp-server", "computer-control-mcp", "mcp-genmedia"]
