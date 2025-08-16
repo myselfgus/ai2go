@@ -1,37 +1,26 @@
 # Dockerfile para o serviço orchestrator (Python)
 
 # Etapa 1: Builder - Instala as dependências em um ambiente virtual
-FROM python:3.11-slim AS builder
-
-# Instala o uv, nosso gerenciador de pacotes e ambientes Python.
-RUN pip install uv
+FROM python:3.12-slim AS builder
 
 WORKDIR /app
 
-# Copia os arquivos de definição de dependências.
-# O uso de `uv.lock*` é para caso existam múltiplos arquivos de lock.
-COPY pyproject.toml uv.lock* ./
-
-# Cria um ambiente virtual e instala as dependências nele.
-# Isso aproveita o cache de camadas do Docker. As dependências só são reinstaladas
-# se os arquivos de lock mudarem.
-RUN uv venv /app/.venv && \
-    uv sync --all-extras --python /app/.venv/bin/python
+# Cria venv e instala dependências mínimas do orquestrador
+RUN python -m venv /app/.venv && \
+    /app/.venv/bin/pip install --no-cache-dir --upgrade pip && \
+    /app/.venv/bin/pip install --no-cache-dir fastapi==0.115.6 uvicorn==0.30.6 httpx==0.27.2
 
 # Etapa 2: Final - Cria a imagem de produção final
 # Usamos uma imagem distroless para segurança e tamanho reduzido.
-FROM gcr.io/distroless/python3-debian11
+FROM python:3.12-slim
 
 WORKDIR /app
 
 # Copia o ambiente virtual com as dependências da etapa de build.
 COPY --from=builder /app/.venv /app/.venv
 
-# Copia o código da aplicação. 
-# Embora o código seja montado por volume no desenvolvimento, esta cópia
-# garante que a imagem possa ser usada de forma autônoma em produção.
-COPY ./fast-agent /app/fast-agent
-COPY ./codemcp /app/codemcp
+# Copia o código do orquestrador
+COPY orchestrator /app/orchestrator
 
 # Adiciona o diretório de binários do ambiente virtual ao PATH do sistema.
 ENV PATH="/app/.venv/bin:$PATH"
@@ -39,7 +28,5 @@ ENV PATH="/app/.venv/bin:$PATH"
 # Expõe a porta em que o serviço irá rodar.
 EXPOSE 8000
 
-# Comando para iniciar a aplicação.
-# Este é um placeholder e precisará ser ajustado para o comando real
-# que inicia o servidor do orquestrador (ex: usando uvicorn, gunicorn, etc.).
-CMD ["uvicorn", "orchestrator.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Comando para iniciar a aplicação (proíbe localhost no upstream em runtime)
+CMD ["/app/.venv/bin/uvicorn", "orchestrator.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -24,6 +24,14 @@ services:
       - ./codemcp:/app/codemcp
     env_file:
       - .env
+    environment:
+      # Pass-through de token sem gravar no .env
+      GOOGLE_ACCESS_TOKEN: ${GOOGLE_ACCESS_TOKEN}
+    healthcheck:
+      test: ["CMD", "/app/.venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://orchestrator:8000/healthz').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - gopilot-net
 
@@ -42,6 +50,11 @@ services:
       - .env
     networks:
       - gopilot-net
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://librechat:3080').then(()=>process.exit(0)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
 
   # O servidor de ferramentas de banco de dados em Go.
   genai-toolbox:

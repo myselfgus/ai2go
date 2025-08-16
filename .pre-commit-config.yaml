@@ -1,0 +1,28 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-merge-conflict
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+        additional_dependencies: []
+
+  - repo: local
+    hooks:
+      - id: go-fmt
+        name: go fmt (genai-toolbox)
+        entry: bash -lc 'command -v go >/dev/null 2>&1 && [ -d genai-toolbox ] && (cd genai-toolbox && go fmt ./...) || true'
+        language: system
+        pass_filenames: false
+      - id: eslint-librechat
+        name: eslint (LibreChat)
+        entry: bash -lc '[ -f LibreChat/package.json ] && (cd LibreChat && npm run -s lint) || true'
+        language: system
+        pass_filenames: false
+
