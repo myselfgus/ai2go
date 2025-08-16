@@ -30,7 +30,7 @@ jobs:
         python3 deployment_readiness_agent.py --json > deployment_report.json
         
     - name: Upload deployment report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: deployment-readiness-report
