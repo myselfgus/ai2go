@@ -39,6 +39,22 @@ jobs:
     - name: Parse and display results
       if: always()
       run: |
+        # Check if deployment_report.json exists and is valid
+        if [ ! -f "deployment_report.json" ]; then
+          echo "❌ **Deployment report not generated - script failed**" >> $GITHUB_STEP_SUMMARY
+          exit 1
+        fi
+        
+        # Validate JSON before parsing
+        if ! python3 -c "import json; json.load(open('deployment_report.json'))" 2>/dev/null; then
+          echo "❌ **Invalid JSON in deployment report**" >> $GITHUB_STEP_SUMMARY
+          echo "Report content:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat deployment_report.json >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          exit 1
+        fi
+        
         # Extract key metrics from JSON report
         DEPLOYMENT_READY=$(python3 -c "import json; data=json.load(open('deployment_report.json')); print(data['deployment_ready'])")
         ERROR_COUNT=$(python3 -c "import json; data=json.load(open('deployment_report.json')); print(data['error_count'])")
@@ -60,6 +76,18 @@ jobs:
         
     - name: Fail if not deployment ready
       run: |
+        # Check if deployment_report.json exists and is valid
+        if [ ! -f "deployment_report.json" ]; then
+          echo "❌ Deployment report not generated - script failed."
+          exit 1
+        fi
+        
+        # Validate JSON before parsing
+        if ! python3 -c "import json; json.load(open('deployment_report.json'))" 2>/dev/null; then
+          echo "❌ Invalid JSON in deployment report."
+          exit 1
+        fi
+        
         DEPLOYMENT_READY=$(python3 -c "import json; data=json.load(open('deployment_report.json')); print(data['deployment_ready'])")
         if [ "$DEPLOYMENT_READY" != "True" ]; then
           echo "❌ Deployment readiness check failed. Repository is not ready for production deployment."

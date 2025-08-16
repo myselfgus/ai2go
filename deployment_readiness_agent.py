@@ -41,7 +41,7 @@ class DeploymentReadinessAgent:
     def __init__(self, repo_root: Path, json_output: bool = False, quiet: bool = False):
         self.repo_root = repo_root
         self.json_output = json_output
-        self.quiet = quiet
+        self.quiet = quiet or json_output  # JSON mode should be quiet
         self.results: List[ValidationResult] = []
         
         # Define expected services based on AGENTS.md
@@ -617,8 +617,13 @@ Examples:
         agent.run_all_checks()
         report = agent.generate_report()
         
-        # Exit with error code if not deployment ready
-        sys.exit(0 if report["deployment_ready"] else 1)
+        # In JSON mode, always exit successfully if report was generated
+        # The workflow will check deployment_ready status from the JSON
+        if args.json:
+            sys.exit(0)
+        else:
+            # Exit with error code if not deployment ready (interactive mode)
+            sys.exit(0 if report["deployment_ready"] else 1)
         
     except KeyboardInterrupt:
         if not args.quiet:

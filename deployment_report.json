@@ -1,0 +1,92 @@
+{
+  "deployment_ready": false,
+  "passed_checks": 1,
+  "total_checks": 7,
+  "error_count": 4,
+  "warning_count": 2,
+  "results": [
+    {
+      "passed": false,
+      "message": "Service structure is incomplete",
+      "recommendations": [
+        "Implement missing services (currently empty): ['fast-agent', 'codemcp', 'genai-toolbox', 'cognee', 'LibreChat']",
+        "Each service should have its source code, Dockerfile, and configuration",
+        "Refer to AGENTS.md for expected service structure",
+        "Each service should be a complete, deployable microservice",
+        "Empty service directories: ['fast-agent', 'codemcp', 'genai-toolbox', 'cognee', 'LibreChat']"
+      ],
+      "severity": "ERROR"
+    },
+    {
+      "passed": false,
+      "message": "Dockerfile issues found",
+      "recommendations": [
+        "Create missing Dockerfiles for all services",
+        "Ensure all Dockerfiles have valid FROM instructions",
+        "Use multi-stage builds for optimization",
+        "Follow security best practices (non-root user, minimal base images)",
+        "Missing Dockerfiles: fast-agent: /home/runner/work/ai2go/ai2go/fast-agent/Dockerfile, codemcp: /home/runner/work/ai2go/ai2go/codemcp/Dockerfile, genai-toolbox: /home/runner/work/ai2go/ai2go/genai-toolbox/Dockerfile, cognee: /home/runner/work/ai2go/ai2go/cognee/Dockerfile, LibreChat: /home/runner/work/ai2go/ai2go/LibreChat/Dockerfile"
+      ],
+      "severity": "ERROR"
+    },
+    {
+      "passed": false,
+      "message": "docker-compose.yml has 1 issues",
+      "recommendations": [
+        "Add healthcheck configuration to all services",
+        "Services without healthchecks: ['genai-toolbox', 'cognee-service']"
+      ],
+      "severity": "WARNING"
+    },
+    {
+      "passed": false,
+      "message": "Environment configuration has 1 issues",
+      "recommendations": [
+        "Replace localhost with proper service URLs in .env",
+        ".env contains localhost references"
+      ],
+      "severity": "ERROR"
+    },
+    {
+      "passed": false,
+      "message": "Found 27 localhost/mock/placeholder violations",
+      "recommendations": [
+        "Remove all localhost references and use service names in docker-compose",
+        "Replace mock implementations with real ones",
+        "Remove placeholder values and implement actual functionality",
+        "Violations found:",
+        "/home/runner/work/ai2go/ai2go/README.md:37: Agora, abra o arquivo `.env` e edite as vari\u00e1veis conforme necess\u00e1rio. No m\u00ednimo, voc\u00ea deve substituir os valores de placeholder para segredos como `JWT_SECRET`.",
+        "/home/runner/work/ai2go/ai2go/DEPLOYMENT_CHECKLIST.md:76: **Issue**: .env contains localhost references",
+        "/home/runner/work/ai2go/ai2go/DEPLOYMENT_CHECKLIST.md:79: - [ ] Review `.env` file and remove localhost references",
+        "/home/runner/work/ai2go/ai2go/DEPLOYMENT_CHECKLIST.md:85: **Issue**: 1 placeholder reference found",
+        "/home/runner/work/ai2go/ai2go/DEPLOYMENT_CHECKLIST.md:88: - [ ] Fix: `/README.md:37` - Remove placeholder reference in documentation",
+        "/home/runner/work/ai2go/ai2go/DEPLOYMENT_CHECKLIST.md:89: - [ ] Review all documentation to ensure no placeholder values mentioned",
+        "/home/runner/work/ai2go/ai2go/DEPLOYMENT_CHECKLIST.md:104: test: [\"CMD\", \"curl\", \"-f\", \"http://localhost:8080/health\"]",
+        "/home/runner/work/ai2go/ai2go/DEPLOYMENT_CHECKLIST.md:123: 1. **Fix placeholder violation**:",
+        "/home/runner/work/ai2go/ai2go/DEPLOYMENT_CHECKLIST.md:125: # Edit README.md line 37 to remove placeholder reference",
+        "/home/runner/work/ai2go/ai2go/DEPLOYMENT_CHECKLIST.md:140: test: [\"CMD\", \"curl\", \"-f\", \"http://localhost:8080/health\"]",
+        "... and more"
+      ],
+      "severity": "ERROR"
+    },
+    {
+      "passed": true,
+      "message": "Build processes are properly configured",
+      "recommendations": [],
+      "severity": "INFO"
+    },
+    {
+      "passed": false,
+      "message": "GCP deployment readiness has 1 issues",
+      "recommendations": [
+        "Add GCP project configuration variables to .env",
+        "Ensure all services can run in GCP Cloud Run",
+        "Configure proper GCR/Artifact Registry for container images",
+        "Set up Cloud SQL for database if needed",
+        "Configure proper IAM permissions for deployment",
+        "Missing GCP environment variables: ['PROJECT', 'REGION', 'GCS_BUCKET']"
+      ],
+      "severity": "WARNING"
+    }
+  ]
+}
