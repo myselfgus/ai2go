@@ -19,6 +19,9 @@ help:
 	@echo "  run-librechat          - Sobe LibreChat"
 	@echo "  show-ip                - Mostra IP da VM"
 	@echo "  set-domain IP=...      - Define DOMAIN_CLIENT/DOMAIN_SERVER para o IP"
+	@echo "  check-deploy           - Valida readiness para deploy em produção"
+	@echo "  check-deploy-json      - Valida readiness (saída JSON para CI/CD)"
+	@echo "  check-deploy-quiet     - Valida readiness (saída mínima)"
 
 bootstrap:
 	@if [ ! -f .env ]; then cp .env.example .env; echo "Copiado .env.example -> .env"; fi
@@ -87,4 +90,14 @@ set-domain:
 	@if [ -z "$(IP)" ]; then echo "Uso: make set-domain IP=SEU_IP"; exit 1; fi
 	@grep -q '^DOMAIN_CLIENT=' .env && sed -i 's#^DOMAIN_CLIENT=.*#DOMAIN_CLIENT=http://$(IP):3080#' .env || echo 'DOMAIN_CLIENT=http://$(IP):3080' >> .env
 	@grep -q '^DOMAIN_SERVER=' .env && sed -i 's#^DOMAIN_SERVER=.*#DOMAIN_SERVER=http://$(IP):3080#' .env || echo 'DOMAIN_SERVER=http://$(IP):3080' >> .env
+
+check-deploy:
+	@echo "🚀 Verificando readiness para deploy em produção..."
+	@python3 deployment_readiness_agent.py
+
+check-deploy-json:
+	@python3 deployment_readiness_agent.py --json
+
+check-deploy-quiet:
+	@python3 deployment_readiness_agent.py --quiet
 	@echo "DOMAIN_CLIENT/DOMAIN_SERVER configurados para http://$(IP):3080"

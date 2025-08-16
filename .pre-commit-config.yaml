@@ -25,4 +25,10 @@ repos:
         entry: bash -lc '[ -f LibreChat/package.json ] && (cd LibreChat && npm run -s lint) || true'
         language: system
         pass_filenames: false
+      - id: deployment-readiness-check
+        name: deployment readiness check
+        entry: python3 deployment_readiness_agent.py --quiet
+        language: system
+        pass_filenames: false
+        stages: [pre-push]  # Only run on push, not every commit
 
